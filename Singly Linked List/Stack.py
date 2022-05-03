@@ -23,3 +23,6 @@ class Stack:
         if self.is_empty():
             return "error"
         return self.data[-1]
+
+
+a = Stack()
