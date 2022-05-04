@@ -11,11 +11,17 @@ def preorder(root):
 
 
 def inorder(root):
-    pass
+    if root is not None:
+        inorder(root.left)
+        print(root.item, end=" ")
+        inorder(root.right)
 
 
 def postorder(root):
-    pass
+    if root is not None:
+        postorder(root.left)
+        postorder(root.right)
+        print(root.item, end=" ")
 
 
 def search(root, x):
@@ -55,7 +61,13 @@ def size(root):
 
 
 def height(root):
-    return 0
+    if root is None:
+        return -1
+    else:
+        leftheight = height(root.left)
+        rightheight = height(root.right)
+
+        return max(leftheight, rightheight) + 1
 
 
 root = None
