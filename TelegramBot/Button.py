@@ -31,7 +31,10 @@ def query_ans(msg):
     if query_data == "1":
         bot.sendMessage(chat_id, text="경기도 용인시 처인구 모현읍 외대로 81 (왕산리)")
     elif query_data == "2":
-        bot.sendMessage(chat_id, text="학사일정")
+        f = open('C:\\Users\\LEE\\Desktop\\StudyPython\\Datas\\학사일정.PNG', 'rb')
+        bot.sendPhoto(chat_id, f)
+    elif query_data == "3":
+        bot.sendMessage(chat_id, text="^^")
 
 
 bot.sendMessage(chat_id, "hihihi")
