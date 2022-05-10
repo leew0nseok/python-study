@@ -1,12 +1,14 @@
 import telepot
+import time
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup
 from telepot.namedtuple import InlineKeyboardButton
 
-token = ""
+token = "5382062842:AAFy953rQtlu2l6M0DIpzQCdJXJrWAJemU4"
 bot = telepot.Bot(token)
 
-chat_id =
+chat_id = '5081938343'
+
 
 # 메세지 처리 함수
 
@@ -36,3 +38,6 @@ bot.sendMessage(chat_id, "hihihi")
 
 MessageLoop(
     bot, {'chat': btn_show, 'callback_query': query_ans}).run_as_thread()
+
+while True:
+    time.sleep(5)
