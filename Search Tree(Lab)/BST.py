@@ -140,6 +140,7 @@ class BinarySearchTree:
             self.inorder(root.right)
 
 
+# cmd
 T = BinarySearchTree()
 while True:
     cmd = input()
