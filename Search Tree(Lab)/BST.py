@@ -77,17 +77,23 @@ class BinarySearchTree:
         # case-1: node is root (p is None)
         if p is None:
             self.root = rep_node
-        # case-2: node is p.left
+            # case-2: node is p.left
         elif node == p.left:
             p.left = rep_node
-        # case-3: node is p.right
+            # case-3: node is p.right
         elif node == p.right:
             p.right = rep_node
 
-        # B. REPLACE node-to-child(s) link(s) IF <rep_node> exists
-        # case-1: <rep_node> is <node>'s left child  --> Do nothing
-        # case-2: <rep_node> is <node>'s right child --> replace the left link IF node.left exists
+            # B. REPLACE node-to-child(s) link(s) IF <rep_node> exists
+            # case-1: <rep_node> is <node>'s left child  --> Do nothing
+            # case-2: <rep_node> is <node>'s right child --> replace the left link IF node.left exists
+        if rep_node == node.right:
+            if node.left is not None:
+                rep_node.left = node.left
         # case-3: <rep_node> is not <node>'s child --> replace both left and right links
+        elif rep_node != node.right:
+            rep_node.left = node.left
+            rep_node.right = node.right
 
         # C. DELETE <rep_p> to <rep_node> link (already coded below)
         rep_p.left = None
