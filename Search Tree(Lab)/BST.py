@@ -91,7 +91,7 @@ class BinarySearchTree:
             if node.left is not None:
                 rep_node.left = node.left
         # case-3: <rep_node> is not <node>'s child --> replace both left and right links
-        elif rep_node != node.right:
+        elif rep_node != node.right and rep_node != node.left:
             rep_node.left = node.left
             rep_node.right = node.right
 
