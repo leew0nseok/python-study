@@ -1,25 +1,10 @@
-# Using Selenium
-import selenium
-import time
-from selenium import webdriver
 
+# pdf2image에서 covert_from_path 함수
+from pdf2image import convert_from_path
 
-options = webdriver.ChromeOptions()
-# 창 숨기는 옵션 추가
-options.add_argument("headless")
-options.add_argument('disable-gpu')  # GPU 사용 안함
-options.add_argument('lang=ko_KR')
-driver = webdriver.Chrome(options=options)
-
-# url = 'http://e-book.hufs.ac.kr/20220214_freshman_h2/'  # 신입생 수강편람 홈페이지
-url = 'https://www.hufs.ac.kr/'  # 신입생 수강편람 홈페이지
-driver.get(url)
-driver.implicitly_wait(3)
-
-
-# Calendar_img = driver.find_element_by_id('EBook1L')  # 학사일정표
-Calendar_img = driver.find_element_by_css_selector(
-    '#hd_quick > div.quick_menuR > ul:nth-child(1) > li:nth-child(4) > a')  # 학사일정표
-# Calendar_img.screenshot(f'imgfolder/AcademicCalendar.png')
-
-print(Calendar_img.text)
+# convert_from_path를 이용해 pdf파일를 이미지형태로 불러온다.
+images = convert_from_path('school.pdf')
+# images는 여러 페이지로 구성되어 있어 아래와 같이 각각의 페이지(이미지)를 jpg로 저장한다.
+for i, image in enumerate(images):
+    image.save("school" + str(i) + ".jpg", "JPEG")
+print('conversion complete')
