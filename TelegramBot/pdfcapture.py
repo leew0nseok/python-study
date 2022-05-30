@@ -87,7 +87,7 @@ def parse_obj2(lt_objs, n):
 
 # loop over all pages in the document
 
-def capture_img(pg, strr):  # pg = pagenumber, str = 찾을 문자열
+def capture_img(pg, strr=None):  # pg = pagenumber, str = 찾을 문자열
     pg = str(pg)
     pgint = int(pg)
     n = 0
@@ -120,5 +120,5 @@ def capture_img(pg, strr):  # pg = pagenumber, str = 찾을 문자열
                 crop_area = (0, 834-b, 590, 770)
 
             cropped_img = img.crop(crop_area)
-            cropped_img.show()
-            cropped_img.save('test-croped' + '.jpg', 'JPEG')
+            # cropped_img.show()
+            cropped_img.save('sendimgfile' + '.jpg', 'JPEG')
