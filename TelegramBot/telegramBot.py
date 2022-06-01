@@ -3,7 +3,8 @@ import time
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup
 from telepot.namedtuple import InlineKeyboardButton
-import pdfcapture
+import pdftoimage  # pdf2image를 활용하여 pdf -> img로 저장하는 모듈
+import pdfcapture  # 저장된 img를 이용하여 원하는 정보부분만 캡쳐하는 모듈
 
 token = "5382062842:AAFy953rQtlu2l6M0DIpzQCdJXJrWAJemU4"
 bot = telepot.Bot(token)
@@ -194,6 +195,8 @@ def sendcapture(num, msg=None):  # pdfcapture모듈에서 이미지 저장 후 �
     f = open('sendimgfile.jpg', 'rb')
     bot.sendPhoto(chat_id, f)
 
+
+pdftoimage.pdftoimgfile()  # pdf -> images file
 
 bot.sendMessage(chat_id, "아무키나 입력하세요.")
 
