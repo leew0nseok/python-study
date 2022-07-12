@@ -1,3 +1,5 @@
+import sys
+
 n, k = map(int, input().split())
 people = []
 for i in range(n):
@@ -5,7 +7,7 @@ for i in range(n):
 
 queue = []
 i = 0
-for _ in range(n):
+while len(people):
     i += k-1
     if i >= len(people):
         i = i % len(people)
