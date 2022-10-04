@@ -1,3 +1,4 @@
+#왕실의 나이트
 n = str(input())
 
 startx = 0
@@ -6,7 +7,6 @@ starty = 0
 startx += int(ord(n[0])) - int(ord('a')) + 1
 starty += int(n[1])
   
-print(startx, starty)
 route = [(-1, 2), (-1, -2), (-2, 1), (-2, -1), (1, 2), (1, -2), (2, 1), (2, -1)]
 
 cnt = 0
