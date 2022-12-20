@@ -1,11 +1,12 @@
 # Backtracking SubsetSum 문제
 A = [8, 6, 7, 5, 3, 10, 9]
+A.sort()
 X = [0] * len(A)
 S = 15
 current_sum = 0
 
 def subsetSum(k):
-  # global A, X, S
+  global A, X, S
   current_sum = 0
   for i in range(len(X)):
     if X[i] == 1:
