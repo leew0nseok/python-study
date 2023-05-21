@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import ttk
 from tkcalendar import Calendar
+from tkinter import messagebox
+from collections import defaultdict
+
 import datetime
 from abc import ABC, abstractmethod
 
@@ -15,6 +18,8 @@ class CalendarWindow:
 
         self.tasks = {}  # 날짜별 일정을 저장하는 딕셔너리
         self.todo_window = ToDoWindow(self.root, self.tasks, self.cal)
+
+        self.diary_dict = defaultdict(Diary)  # 날짜별 일기를 저장하는 딕셔너리
 
         self.selection_var = StringVar()  # 작업 유형 선택을 위한 변수
         self.selection_var.set("Task")  # 기본값은 "Task"로 설정
@@ -36,10 +41,64 @@ class CalendarWindow:
         if self.selection_var.get() == "Task":
             add_window = AddTaskWindow(selected_date, self.tasks, self, self.todo_window)
         elif self.selection_var.get() == "Diary":
-            add_window = AddDairyWindow(self)
+            if selected_date in self.diary_dict:
+                diary = self.diary_dict[selected_date]
+                self.show_diary(diary)
+            else:
+                add_window = AddDiaryWindow(self, selected_date)
         if add_window:
             add_window.open()
+    
+    def save_diary(self, diary):
+        date = diary.date
+        self.diary_dict[date]= diary
 
+    def show_diary(self, diary):
+        diary_window = Toplevel()
+        diary_window.title("Diary")
+        diary_window.geometry("400x300")
+        diary_date_label = Label(diary_window, text="Date: " + diary.date, wraplength=380)
+        diary_date_label.pack(padx=10, pady=10)
+        diary_title_label = Label(diary_window, text="Title: " + diary.title, wraplength=380)
+        diary_title_label.pack(padx=10, pady=10)
+        diary_content_label = Label(diary_window, text="Content: " + diary.content, wraplength=380)
+        diary_content_label.pack(padx=10, pady=10)
+
+        edit_button = Button(diary_window, text="Edit", command=lambda: self.edit_diary(diary))
+        edit_button.pack()
+
+    def edit_diary(self, diary):
+        self.edit_window = Toplevel()
+        self.edit_window.title("Edit Diary")
+        self.edit_window.geometry("300x400+1100+100")
+
+        self.title_label = Label(self.edit_window, text="Title:")
+        self.title_label.pack()
+
+        self.title_entry = Entry(self.edit_window)
+        self.title_entry.insert(0, diary.title)
+        self.title_entry.pack()
+
+        self.content_label = Label(self.edit_window, text="Content:")
+        self.content_label.pack()
+
+        self.content_text = Text(self.edit_window, height=10, width=40)
+        self.content_text.insert("1.0", diary.content)
+        self.content_text.pack()
+
+        self.save_button = Button(self.edit_window, text="Save", command=lambda: self.save_edited_diary(diary))
+        self.save_button.pack()
+
+
+    def save_edited_diary(self, diary):
+        title = self.title_entry.get().strip()
+        content = self.content_text.get("1.0", "end-1c").strip()
+        if title and content:
+            diary.set_title(title)  # 일기 제목 수정
+            diary.set_content(content)  # 일기 내용 수정
+            self.save_diary(diary)  # 수정된 일기 정보 저장
+            # diary 객체를 저장하는 로직 추가
+            self.show_diary(diary)
     def run(self):
         self.root.mainloop()
 
@@ -154,46 +213,166 @@ class AddTaskWindow(IStrategy):
 
 
 # Concrete strategy1
-class AddDairyWindow(IStrategy):
-    def __init__(self, calendar_window):
-        self.dairy_window = Tk()
-        self.dairy_window.title("Add Diary")
-        self.dairy_window.geometry("300x400+1100+100")
+class AddDiaryWindow(IStrategy):
+    def __init__(self, calendar_window, selected_date):
+        self.diary_window = Tk()
+        self.diary_window.title("Add Diary")
+        self.diary_window.geometry("300x400+1100+100")
 
         self.calendar_window = calendar_window
+        self.selected_date = selected_date
 
-        self.date_label = Label(self.dairy_window, text="Date:")
+        self.date_label = Label(self.diary_window, text="Date:")
         self.date_label.pack()
 
-        self.date_text = Label(self.dairy_window, text="")
+        self.date_text = Label(self.diary_window, text="")
         self.date_text.pack()
 
-        self.dairy_label = Label(self.dairy_window, text="Diary:")
-        self.dairy_label.pack()
+        self.title_label = Label(self.diary_window, text="Title:")
+        self.title_label.pack()
 
-        self.dairy_entry = Entry(self.dairy_window)
-        self.dairy_entry.pack()
+        self.title_entry = Entry(self.diary_window)
+        self.title_entry.pack()
 
-        self.save_button = Button(self.dairy_window, text="Save", command=self.save_diary)
+        self.content_label = Label(self.diary_window, text="Content:")
+        self.content_label.pack()
+
+        self.content_entry = Text(self.diary_window, height=10) 
+        self.content_entry.pack()
+
+        self.save_button = Button(self.diary_window, text="Save", command=self.save_diary)
         self.save_button.pack()
 
         self.update_date()
+
+    def show_diary(self, diary):
+        self.diary_window.withdraw()  # 일기 추가 창 숨기기
+        self.view_window = Toplevel(self.diary_window)
+        self.view_window.title("View Diary")
+        self.view_window.geometry("300x400+1100+100")
+
+        self.date_label = Label(self.view_window, text="Date:")
+        self.date_label.pack()
+
+        self.date_text = Label(self.view_window, text=diary.date)
+        self.date_text.pack()
+
+        self.title_label = Label(self.view_window, text="Title:")
+        self.title_label.pack()
+
+        self.title_text = Label(self.view_window, text=diary.title)
+        self.title_text.pack()
+
+        self.content_label = Label(self.view_window, text="Content:")
+        self.content_label.pack()
+
+        self.content_text = Text(self.view_window, height=10, width=40)
+        self.content_text.insert("1.0", diary.content)
+        self.content_text.configure(state="disabled")
+        self.content_text.pack()
+
+        self.edit_button = Button(self.view_window, text="Edit", command=lambda: self.edit_diary(diary))
+        self.edit_button.pack()
+
+        self.close_button = Button(self.view_window, text="Close", command=self.close_view_window)
+        self.close_button.pack()
+
+    def edit_diary(self, diary):
+        self.diary_window.withdraw()  # 일기 추가 창 숨기기
+        self.edit_window = Toplevel(self.diary_window)
+        self.edit_window.title("Edit Diary")
+        self.edit_window.geometry("300x400+1100+100")
+
+        self.title_label = Label(self.edit_window, text="Title:")
+        self.title_label.pack()
+
+        self.title_entry = Entry(self.edit_window)
+        self.title_entry.insert(0, diary.title)
+        self.title_entry.pack()
+
+        self.content_label = Label(self.edit_window, text="Content:")
+        self.content_label.pack()
+
+        self.content_text = Text(self.edit_window, height=10, width=40)
+        self.content_text.insert("1.0", diary.content)
+        self.content_text.pack()
+
+        self.save_button = Button(self.edit_window, text="Save", command=lambda: self.save_edited_diary(diary))
+        self.save_button.pack()
+
+        self.cancel_button = Button(self.edit_window, text="Cancel", command=self.close_edit_window)
+        self.cancel_button.pack()
+
+
+    def save_diary(self):
+        title = self.title_entry.get().strip()
+        content = self.content_entry.get("1.0", "end-1c").strip()
+        if title and content:
+            diary_builder = DiaryBuilder(self.selected_date, title, content)
+            diary = diary_builder.build()
+            self.calendar_window.save_diary(diary)  # 일기 저장
+            self.show_diary(diary)
+        else:
+            messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
+
+    def save_edited_diary(self, diary):
+        title = self.title_entry.get().strip()
+        content = self.content_text.get("1.0", "end-1c").strip()
+        if title and content:
+            diary.set_title(title)  # 일기 제목 수정
+            diary.set_content(content)  # 일기 내용 수정
+            self.calendar_window.save_diary(diary)  # 수정된 일기 정보 저장
+            # diary 객체를 저장하는 로직 추가
+            self.close_edit_window()
+            self.show_diary(diary)
+        else:
+            messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
+
+    def close_edit_window(self):
+        self.edit_window.destroy()
+        # self.diary_window.deiconify()  # 일기 추가 창 다시 보이기
+
+    def close_view_window(self):
+        self.view_window.destroy()
+        # self.diary_window.deiconify()  # 일기 추가 창 다시 보이기
 
     def update_date(self):
         selected_date = self.calendar_window.cal.get_date()
         self.date_text.config(text=f"Selected Date: {selected_date}")
 
-    def save_diary(self):
-        diary = self.dairy_entry.get().strip()
-        if diary:
-            selected_date = self.calendar_window.cal.get_date()
-            # Diary 저장 또는 업데이트하는 로직 추가
-            # 예: self.calendar_window.diaries[selected_date] = diary
-            self.dairy_window.destroy()
-
     def open(self):
-        self.dairy_window.mainloop()
+        self.diary_window.mainloop()
         
+class Diary:
+    def __init__(self, date, title, content):
+        self.date = date
+        self.title = title
+        self.content = content
+    def set_title(self, title):
+        self.title = title
+
+    def set_content(self, content):
+        self.content = content
+
+class DiaryBuilder:
+    def __init__(self, date=None, title=None, content=None):
+        self.diary = Diary(date, title, content)
+
+    def set_date(self, date):
+        self.diary.date = date
+        return self
+
+    def set_title(self, title):
+        self.diary.title = title
+        return self
+
+    def set_content(self, content):
+        self.diary.content = content
+        return self
+
+    def build(self):
+        return self.diary
+
 
 class Command(ABC):
     @abstractmethod
