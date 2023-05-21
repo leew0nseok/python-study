@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import Calendar
 from tkinter import messagebox
+from tkinter.ttk import Combobox
 from collections import defaultdict
 
 import datetime
@@ -217,7 +218,7 @@ class AddDiaryWindow(IStrategy):
     def __init__(self, calendar_window, selected_date):
         self.diary_window = Tk()
         self.diary_window.title("Add Diary")
-        self.diary_window.geometry("300x400+1100+100")
+        self.diary_window.geometry("300x500+1100+100")
 
         self.calendar_window = calendar_window
         self.selected_date = selected_date
@@ -228,6 +229,12 @@ class AddDiaryWindow(IStrategy):
         self.date_text = Label(self.diary_window, text="")
         self.date_text.pack()
 
+        self.diary_type_label = Label(self.diary_window, text="Diary Type:")
+        self.diary_type_label.pack()
+
+        self.diary_type_combobox = Combobox(self.diary_window, values=["General Diary", "Workout Diary", "Book Diary"])
+        self.diary_type_combobox.pack()
+
         self.title_label = Label(self.diary_window, text="Title:")
         self.title_label.pack()
 
@@ -237,12 +244,78 @@ class AddDiaryWindow(IStrategy):
         self.content_label = Label(self.diary_window, text="Content:")
         self.content_label.pack()
 
-        self.content_entry = Text(self.diary_window, height=10) 
+        self.content_entry = Text(self.diary_window, width = 25, height=5, relief="solid") 
         self.content_entry.pack()
 
         self.save_button = Button(self.diary_window, text="Save", command=self.save_diary)
         self.save_button.pack()
 
+
+        self.diary_type_combobox.bind("<<ComboboxSelected>>", self.handle_diary_type_selection)
+
+        # Workout Diary에 필요한 추가 입력 필드
+        self.body_part_label = Label(self.diary_window, text="Body Part:")
+        self.body_part_entry = Entry(self.diary_window)
+        self.time_label = Label(self.diary_window, text="Time:")
+        self.time_entry = Entry(self.diary_window)
+
+        # Book Diary에 필요한 추가 입력 필드
+        self.book_title_label = Label(self.diary_window, text="Book Title:")
+        self.book_title_entry = Entry(self.diary_window)
+        self.author_label = Label(self.diary_window, text="Author:")
+        self.author_entry = Entry(self.diary_window)
+        self.start_page_label = Label(self.diary_window, text="Start Page:")
+        self.start_page_entry = Entry(self.diary_window)
+        self.end_page_label = Label(self.diary_window, text="End Page:")
+        self.end_page_entry = Entry(self.diary_window)
+
+    def handle_diary_type_selection(self, event):
+        selected_type = self.diary_type_combobox.get()
+        if selected_type == "Workout Diary":
+            # Workout Diary 선택 시 추가 입력 필드 표시
+            self.body_part_label.pack()
+            self.body_part_entry.pack()
+            self.time_label.pack()
+            self.time_entry.pack()
+            self.book_title_label.pack_forget()
+            self.book_title_entry.pack_forget()
+            self.author_label.pack_forget()
+            self.author_entry.pack_forget()
+            self.start_page_label.pack_forget()
+            self.start_page_entry.pack_forget()
+            self.end_page_label.pack_forget()
+            self.end_page_entry.pack_forget()
+            self.save_button.pack(side="bottom")  # save 버튼을 맨 아래에 배치
+        elif selected_type == "Book Diary":
+            # Book Diary 선택 시 추가 입력 필드 표시
+            self.book_title_label.pack()
+            self.book_title_entry.pack()
+            self.author_label.pack()
+            self.author_entry.pack()
+            self.start_page_label.pack()
+            self.start_page_entry.pack()
+            self.end_page_label.pack()
+            self.end_page_entry.pack()
+            self.body_part_label.pack_forget()
+            self.body_part_entry.pack_forget()
+            self.time_label.pack_forget()
+            self.time_entry.pack_forget()
+            self.save_button.pack(side="bottom")  # save 버튼을 맨 아래에 배치
+        else:
+            # 다른 Diary 선택 시 추가 입력 필드 숨김
+            self.body_part_label.pack_forget()
+            self.body_part_entry.pack_forget()
+            self.time_label.pack_forget()
+            self.time_entry.pack_forget()
+            self.book_title_label.pack_forget()
+            self.book_title_entry.pack_forget()
+            self.author_label.pack_forget()
+            self.author_entry.pack_forget()
+            self.start_page_label.pack_forget()
+            self.start_page_entry.pack_forget()
+            self.end_page_label.pack_forget()
+            self.end_page_entry.pack_forget()
+    
         self.update_date()
 
     def show_diary(self, diary):
@@ -303,17 +376,66 @@ class AddDiaryWindow(IStrategy):
         self.cancel_button = Button(self.edit_window, text="Cancel", command=self.close_edit_window)
         self.cancel_button.pack()
 
+    # def save_diary(self):
+    #     title = self.title_entry.get().strip()
+    #     content = self.content_entry.get("1.0", "end-1c").strip()
+    #     if title and content:
+    #         diary_builder = DiaryBuilder().set_date(self.selected_date).set_title(title).set_content(content)
+    #         diary = diary_builder.build()
+    #         self.calendar_window.save_diary(diary)  # 일기 저장
+    #         self.show_diary(diary)
+    #     else:
+    #         messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
 
     def save_diary(self):
+        diary_type = self.diary_type_combobox.get()
         title = self.title_entry.get().strip()
         content = self.content_entry.get("1.0", "end-1c").strip()
-        if title and content:
-            diary_builder = DiaryBuilder(self.selected_date, title, content)
-            diary = diary_builder.build()
-            self.calendar_window.save_diary(diary)  # 일기 저장
-            self.show_diary(diary)
+
+        if diary_type == "General Diary":
+            # General Diary 작성 코드
+            if title and content:
+                diary_builder = DiaryBuilder().set_date(self.selected_date).set_title(title).set_content(content)
+                diary = diary_builder.build()
+                self.calendar_window.save_diary(diary)  # 일기 저장
+                self.show_diary(diary)
+        elif diary_type == "Workout Diary":
+            # Workout Diary 작성 코드
+            body_part = self.body_part_entry.get().strip()
+            time = self.time_entry.get().strip()
+            if title and content and body_part and time:
+                diary_builder = WorkOutDiaryBuilder().set_date(self.selected_date).set_title(title).set_content(content)
+                diary_builder.set_body_part(body_part).set_time(time)
+                diary = diary_builder.build()
+                self.calendar_window.save_diary(diary)  # 일기 저장
+                self.show_diary(diary)
+            else:
+                messagebox.showwarning("Incomplete Information", "Please enter all fields.")
+        elif diary_type == "Book Diary":
+            # Book Diary 작성 코드
+            book_title = self.book_title_entry.get().strip()
+            author = self.author_entry.get().strip()
+            start_page = self.start_page_entry.get().strip()
+            end_page = self.end_page_entry.get().strip()
+
+            if title and content and book_title and author and start_page and end_page:
+                diary_builder = (
+                    BookBuilder()
+                    .set_date(self.selected_date)
+                    .set_title(title)
+                    .set_content(content)
+                    .set_book_title(book_title)
+                    .set_author(author)
+                    .set_start_page(start_page)
+                    .set_end_page(end_page)
+                )
+                diary = diary_builder.build()
+                self.calendar_window.save_diary(diary)  # 일기 저장
+                self.show_diary(diary)
+            else:
+                messagebox.showwarning("Incomplete Information", "Please fill in all fields for Book Diary.")
         else:
-            messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
+            messagebox.showwarning("Incomplete Information", "Please select a diary type.")
 
     def save_edited_diary(self, diary):
         title = self.title_entry.get().strip()
@@ -354,24 +476,92 @@ class Diary:
     def set_content(self, content):
         self.content = content
 
+class WorkOutDiary(Diary):
+    def __init__(self, date, title, content):
+        super().__init__(date, title, content)
+        self.body_part = ""
+        self.time = 0
+
+class BookDiary(Diary):
+    def __init__(self, date, title, content):
+        super().__init__(date, title, content)
+        self.book_title = ""
+        self.author = ""
+        self.start_page = 0
+        self.end_page = 0
+
 class DiaryBuilder:
-    def __init__(self, date=None, title=None, content=None):
-        self.diary = Diary(date, title, content)
+    def __init__(self):
+        self.date = None
+        self.title = None
+        self.content = None
 
     def set_date(self, date):
-        self.diary.date = date
+        self.date = date
         return self
 
     def set_title(self, title):
-        self.diary.title = title
+        self.title = title
         return self
 
     def set_content(self, content):
-        self.diary.content = content
+        self.content = content
         return self
 
     def build(self):
-        return self.diary
+        return Diary(self.date, self.title, self.content)
+
+class WorkOutDiaryBuilder(DiaryBuilder):
+    def __init__(self):
+        super().__init__()
+        self.body_part = "" # 운동 부위
+        self.time = 0 # 운동 시간
+
+    def set_body_part(self, body_part):
+        self.body_part = body_part
+        return self
+
+    def set_time(self, time):
+        self.time = time
+        return self
+
+    def build(self):
+        diary = WorkOutDiary(self.date, self.title, self.content)
+        diary.body_part = self.body_part
+        diary.time = self.time
+        return diary
+
+class BookBuilder(DiaryBuilder):
+    def __init__(self):
+        super().__init__()
+        self.book_title = ""
+        self.author = ""
+        self.start_page = 0
+        self.end_page = 0
+
+    def set_book_title(self, book_title):
+        self.book_title = book_title
+        return self
+
+    def set_author(self, author):
+        self.author = author
+        return self
+
+    def set_start_page(self, start_page):
+        self.start_page = start_page
+        return self
+
+    def set_end_page(self, end_page):
+        self.end_page = end_page
+        return self
+
+    def build(self):
+        diary = BookDiary(self.date, self.title, self.content)
+        diary.book_title = self.book_title
+        diary.author = self.author
+        diary.start_page = self.start_page
+        diary.end_page = self.end_page
+        return diary
 
 
 class Command(ABC):
