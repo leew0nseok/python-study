@@ -54,24 +54,49 @@ class CalendarWindow:
         date = diary.date
         self.diary_dict[date]= diary
 
+    # 일기가 저장되어 있는 날짜를 다시 클릭했을 때 저장된 일기를 보여주는 함수
     def show_diary(self, diary):
-        diary_window = Toplevel()
-        diary_window.title("Diary")
-        diary_window.geometry("400x300")
-        diary_date_label = Label(diary_window, text="Date: " + diary.date, wraplength=380)
-        diary_date_label.pack(padx=10, pady=10)
-        diary_title_label = Label(diary_window, text="Title: " + diary.title, wraplength=380)
-        diary_title_label.pack(padx=10, pady=10)
-        diary_content_label = Label(diary_window, text="Content: " + diary.content, wraplength=380)
-        diary_content_label.pack(padx=10, pady=10)
+        self.view_window = Toplevel()
+        self.view_window.title("View Diary")
+        self.view_window.geometry("300x500+1100+100")
+        self.date_label = Label(self.view_window, text="Date:")
+        self.date_label.pack()
+        self.date_text = Label(self.view_window, text=diary.date)
+        self.date_text.pack()
+        self.title_label = Label(self.view_window, text="Title:")
+        self.title_label.pack()
+        self.title_text = Label(self.view_window, text=diary.title)
+        self.title_text.pack()
+        self.content_label = Label(self.view_window, text="Content:")
+        self.content_label.pack()
+        self.content_text = Text(self.view_window, height=10, width=40)
+        self.content_text.insert("1.0", diary.content)
+        self.content_text.configure(state="disabled")
+        self.content_text.pack()
+        self.additional_info_label = Label(self.view_window, text="Additional Info:")
+        self.additional_info_label.pack()
 
-        edit_button = Button(diary_window, text="Edit", command=lambda: self.edit_diary(diary))
-        edit_button.pack()
+        if isinstance(diary, WorkOutDiary):
+            self.additional_info_text = Label(self.view_window, text=f"Body Part: {diary.body_part}, Time: {diary.time}")
+        elif isinstance(diary, BookDiary):
+            self.additional_info_text = Label(
+                self.view_window,
+                text=f"Book Title: {diary.book_title}, Author: {diary.author}, Start Page: {diary.start_page}, End Page: {diary.end_page}",
+            )
+        else:
+            self.additional_info_text = Label(self.view_window, text="No additional info")
+        self.additional_info_text.pack()
+        self.edit_button = Button(self.view_window, text="Edit", command=lambda: self.edit_diary(diary))
+        self.edit_button.pack()
 
+        self.close_button = Button(self.view_window, text="Close", command=self.close_view_window)
+        self.close_button.pack()
+
+    # 일기를 편집하는 함수
     def edit_diary(self, diary):
         self.edit_window = Toplevel()
         self.edit_window.title("Edit Diary")
-        self.edit_window.geometry("300x400+1100+100")
+        self.edit_window.geometry("300x500+1100+100")
 
         self.title_label = Label(self.edit_window, text="Title:")
         self.title_label.pack()
@@ -87,19 +112,82 @@ class CalendarWindow:
         self.content_text.insert("1.0", diary.content)
         self.content_text.pack()
 
+        if isinstance(diary, WorkOutDiary):
+            self.body_part_label = Label(self.edit_window, text="Body Part:")
+            self.body_part_label.pack()
+
+            self.body_part_entry = Entry(self.edit_window)
+            self.body_part_entry.insert(0, diary.body_part)
+            self.body_part_entry.pack()
+
+            self.time_label = Label(self.edit_window, text="Time:")
+            self.time_label.pack()
+
+            self.time_entry = Entry(self.edit_window)
+            self.time_entry.insert(0, diary.time)
+            self.time_entry.pack()
+
+        elif isinstance(diary, BookDiary):
+            self.book_title_label = Label(self.edit_window, text="Book Title:")
+            self.book_title_label.pack()
+
+            self.book_title_entry = Entry(self.edit_window)
+            self.book_title_entry.insert(0, diary.book_title)
+            self.book_title_entry.pack()
+
+            self.author_label = Label(self.edit_window, text="Author:")
+            self.author_label.pack()
+
+            self.author_entry = Entry(self.edit_window)
+            self.author_entry.insert(0, diary.author)
+            self.author_entry.pack()
+
+            self.start_page_label = Label(self.edit_window, text="Start Page:")
+            self.start_page_label.pack()
+
+            self.start_page_entry = Entry(self.edit_window)
+            self.start_page_entry.insert(0, diary.start_page)
+            self.start_page_entry.pack()
+
+            self.end_page_label = Label(self.edit_window, text="End Page:")
+            self.end_page_label.pack()
+
+            self.end_page_entry = Entry(self.edit_window)
+            self.end_page_entry.insert(0, diary.end_page)
+            self.end_page_entry.pack()
+
         self.save_button = Button(self.edit_window, text="Save", command=lambda: self.save_edited_diary(diary))
         self.save_button.pack()
 
+        self.close_button = Button(self.edit_window, text="Close", command=self.close_edit_window)
+        self.close_button.pack()
 
+    # 편집한 일기를 저장하는 함수
     def save_edited_diary(self, diary):
-        title = self.title_entry.get().strip()
-        content = self.content_text.get("1.0", "end-1c").strip()
-        if title and content:
-            diary.set_title(title)  # 일기 제목 수정
-            diary.set_content(content)  # 일기 내용 수정
-            self.save_diary(diary)  # 수정된 일기 정보 저장
-            # diary 객체를 저장하는 로직 추가
-            self.show_diary(diary)
+        # diary.date = self.date_entry.get()
+        diary.title = self.title_entry.get()
+        diary.content = self.content_text.get("1.0", "end")
+
+        if isinstance(diary, WorkOutDiary):
+            diary.body_part = self.body_part_entry.get()
+            diary.time = self.time_entry.get()
+
+        elif isinstance(diary, BookDiary):
+            diary.book_title = self.book_title_entry.get()
+            diary.author = self.author_entry.get()
+            diary.start_page = self.start_page_entry.get()
+            diary.end_page = self.end_page_entry.get()
+            
+        self.save_diary(diary)
+        self.edit_window.destroy()
+        self.show_diary(diary)
+    
+    def close_edit_window(self):
+        self.edit_window.destroy()
+
+    def close_view_window(self):
+        self.view_window.destroy()
+
     def run(self):
         self.root.mainloop()
 
@@ -207,6 +295,12 @@ class AddTaskWindow(IStrategy):
         self.complete_button = Button(self.add_task_window, text="Complete Task", command=self.complete_task_command.execute)
         self.complete_button.pack()
 
+        self.close_button = Button(self.add_task_window, text="Close", command=self.close_window)
+        self.close_button.pack()
+    
+    def close_window(self):
+        self.add_task_window.destroy()
+
     def open(self):
         self.create_command_objects()
         self.create_buttons()
@@ -248,8 +342,6 @@ class AddDiaryWindow(IStrategy):
         self.content_entry.pack()
 
         self.save_button = Button(self.diary_window, text="Save", command=self.save_diary)
-        self.save_button.pack()
-
 
         self.diary_type_combobox.bind("<<ComboboxSelected>>", self.handle_diary_type_selection)
 
@@ -269,6 +361,11 @@ class AddDiaryWindow(IStrategy):
         self.end_page_label = Label(self.diary_window, text="End Page:")
         self.end_page_entry = Entry(self.diary_window)
 
+        self.close_button = Button(self.diary_window, text="Close", command=self.close_window)
+        self.close_button.pack(side="bottom")
+        self.save_button.pack(side="bottom")
+
+
     def handle_diary_type_selection(self, event):
         selected_type = self.diary_type_combobox.get()
         if selected_type == "Workout Diary":
@@ -285,7 +382,6 @@ class AddDiaryWindow(IStrategy):
             self.start_page_entry.pack_forget()
             self.end_page_label.pack_forget()
             self.end_page_entry.pack_forget()
-            self.save_button.pack(side="bottom")  # save 버튼을 맨 아래에 배치
         elif selected_type == "Book Diary":
             # Book Diary 선택 시 추가 입력 필드 표시
             self.book_title_label.pack()
@@ -300,7 +396,6 @@ class AddDiaryWindow(IStrategy):
             self.body_part_entry.pack_forget()
             self.time_label.pack_forget()
             self.time_entry.pack_forget()
-            self.save_button.pack(side="bottom")  # save 버튼을 맨 아래에 배치
         else:
             # 다른 Diary 선택 시 추가 입력 필드 숨김
             self.body_part_label.pack_forget()
@@ -318,11 +413,12 @@ class AddDiaryWindow(IStrategy):
     
         self.update_date()
 
+    # 일기를 보여주는 함수
     def show_diary(self, diary):
         self.diary_window.withdraw()  # 일기 추가 창 숨기기
         self.view_window = Toplevel(self.diary_window)
         self.view_window.title("View Diary")
-        self.view_window.geometry("300x400+1100+100")
+        self.view_window.geometry("300x500+1100+100")
 
         self.date_label = Label(self.view_window, text="Date:")
         self.date_label.pack()
@@ -344,17 +440,33 @@ class AddDiaryWindow(IStrategy):
         self.content_text.configure(state="disabled")
         self.content_text.pack()
 
+        self.additional_info_label = Label(self.view_window, text="Additional Info:")
+        self.additional_info_label.pack()
+
+        if isinstance(diary, WorkOutDiary):
+            self.additional_info_text = Label(self.view_window, text=f"Body Part: {diary.body_part}, Time: {diary.time}")
+        elif isinstance(diary, BookDiary):
+            self.additional_info_text = Label(
+                self.view_window,
+                text=f"Book Title: {diary.book_title}, Author: {diary.author}, Start Page: {diary.start_page}, End Page: {diary.end_page}",
+            )
+        else:
+            self.additional_info_text = Label(self.view_window, text="No additional info")
+
+        self.additional_info_text.pack()
+
         self.edit_button = Button(self.view_window, text="Edit", command=lambda: self.edit_diary(diary))
         self.edit_button.pack()
 
         self.close_button = Button(self.view_window, text="Close", command=self.close_view_window)
         self.close_button.pack()
 
+    # 일기를 편집하는 함수
     def edit_diary(self, diary):
         self.diary_window.withdraw()  # 일기 추가 창 숨기기
         self.edit_window = Toplevel(self.diary_window)
         self.edit_window.title("Edit Diary")
-        self.edit_window.geometry("300x400+1100+100")
+        self.edit_window.geometry("300x500+1100+100")
 
         self.title_label = Label(self.edit_window, text="Title:")
         self.title_label.pack()
@@ -370,23 +482,57 @@ class AddDiaryWindow(IStrategy):
         self.content_text.insert("1.0", diary.content)
         self.content_text.pack()
 
+        if isinstance(diary, WorkOutDiary):
+            self.body_part_label = Label(self.edit_window, text="Body Part:")
+            self.body_part_label.pack()
+
+            self.body_part_entry = Entry(self.edit_window)
+            self.body_part_entry.insert(0, diary.body_part)
+            self.body_part_entry.pack()
+
+            self.time_label = Label(self.edit_window, text="Time:")
+            self.time_label.pack()
+
+            self.time_entry = Entry(self.edit_window)
+            self.time_entry.insert(0, diary.time)
+            self.time_entry.pack()
+
+        elif isinstance(diary, BookDiary):
+            self.book_title_label = Label(self.edit_window, text="Book Title:")
+            self.book_title_label.pack()
+
+            self.book_title_entry = Entry(self.edit_window)
+            self.book_title_entry.insert(0, diary.book_title)
+            self.book_title_entry.pack()
+
+            self.author_label = Label(self.edit_window, text="Author:")
+            self.author_label.pack()
+
+            self.author_entry = Entry(self.edit_window)
+            self.author_entry.insert(0, diary.author)
+            self.author_entry.pack()
+
+            self.start_page_label = Label(self.edit_window, text="Start Page:")
+            self.start_page_label.pack()
+
+            self.start_page_entry = Entry(self.edit_window)
+            self.start_page_entry.insert(0, diary.start_page)
+            self.start_page_entry.pack()
+
+            self.end_page_label = Label(self.edit_window, text="End Page:")
+            self.end_page_label.pack()
+
+            self.end_page_entry = Entry(self.edit_window)
+            self.end_page_entry.insert(0, diary.end_page)
+            self.end_page_entry.pack()
+
         self.save_button = Button(self.edit_window, text="Save", command=lambda: self.save_edited_diary(diary))
         self.save_button.pack()
 
-        self.cancel_button = Button(self.edit_window, text="Cancel", command=self.close_edit_window)
-        self.cancel_button.pack()
+        self.close_button = Button(self.edit_window, text="Close", command=self.close_edit_window)
+        self.close_button.pack()
 
-    # def save_diary(self):
-    #     title = self.title_entry.get().strip()
-    #     content = self.content_entry.get("1.0", "end-1c").strip()
-    #     if title and content:
-    #         diary_builder = DiaryBuilder().set_date(self.selected_date).set_title(title).set_content(content)
-    #         diary = diary_builder.build()
-    #         self.calendar_window.save_diary(diary)  # 일기 저장
-    #         self.show_diary(diary)
-    #     else:
-    #         messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
-
+    # 초기 작성한 일기를 저장하는 함수
     def save_diary(self):
         diary_type = self.diary_type_combobox.get()
         title = self.title_entry.get().strip()
@@ -437,26 +583,34 @@ class AddDiaryWindow(IStrategy):
         else:
             messagebox.showwarning("Incomplete Information", "Please select a diary type.")
 
+    # 편집한 일기를 저장하는 함수
     def save_edited_diary(self, diary):
-        title = self.title_entry.get().strip()
-        content = self.content_text.get("1.0", "end-1c").strip()
-        if title and content:
-            diary.set_title(title)  # 일기 제목 수정
-            diary.set_content(content)  # 일기 내용 수정
-            self.calendar_window.save_diary(diary)  # 수정된 일기 정보 저장
-            # diary 객체를 저장하는 로직 추가
-            self.close_edit_window()
-            self.show_diary(diary)
-        else:
-            messagebox.showwarning("Incomplete Information", "Please enter a title and content.")
+        # diary.date = self.date_entry.get()
+        diary.title = self.title_entry.get()
+        diary.content = self.content_text.get("1.0", "end")
+
+        if isinstance(diary, WorkOutDiary):
+            diary.body_part = self.body_part_entry.get()
+            diary.time = self.time_entry.get()
+
+        elif isinstance(diary, BookDiary):
+            diary.book_title = self.book_title_entry.get()
+            diary.author = self.author_entry.get()
+            diary.start_page = self.start_page_entry.get()
+            diary.end_page = self.end_page_entry.get()
+            
+        self.show_diary(diary)
+        self.edit_window.destroy()
+        self.view_diary()
+
+    def close_window(self):
+        self.diary_window.destroy()
 
     def close_edit_window(self):
         self.edit_window.destroy()
-        # self.diary_window.deiconify()  # 일기 추가 창 다시 보이기
 
     def close_view_window(self):
         self.view_window.destroy()
-        # self.diary_window.deiconify()  # 일기 추가 창 다시 보이기
 
     def update_date(self):
         selected_date = self.calendar_window.cal.get_date()
@@ -470,17 +624,39 @@ class Diary:
         self.date = date
         self.title = title
         self.content = content
+
     def set_title(self, title):
         self.title = title
 
     def set_content(self, content):
         self.content = content
+    
+    def show(self):
+        self.view_window = Toplevel(self.diary_window)
+        self.view_window.title("View Diary")
+        self.view_window.geometry("300x400+1100+100")
+
+        self.additional_info_label = Label(self.view_window, text="Additional Info:")
+        self.additional_info_label.pack()
+
+        self.additional_info_text = Label(self.view_window, text=self.get_additional_info())
+        self.additional_info_text.pack()
+
+    
+    def get_additional_info(self):
+        return ""
 
 class WorkOutDiary(Diary):
     def __init__(self, date, title, content):
         super().__init__(date, title, content)
         self.body_part = ""
         self.time = 0
+    
+    def show(self):
+        super().show()
+
+        self.additional_info_label.configure(text="Body Part:")
+        self.additional_info_text.configure(text=self.body_part)
 
 class BookDiary(Diary):
     def __init__(self, date, title, content):
@@ -489,6 +665,14 @@ class BookDiary(Diary):
         self.author = ""
         self.start_page = 0
         self.end_page = 0
+    
+    def show(self):
+        super().show()
+
+        self.additional_info_label.configure(text="Book Info:")
+        additional_info = f"Title: {self.book_title}\nAuthor: {self.author}\n"
+        additional_info += f"Start Page: {self.start_page}\nEnd Page: {self.end_page}"
+        self.additional_info_text.configure(text=additional_info)
 
 class DiaryBuilder:
     def __init__(self):
