@@ -601,7 +601,7 @@ class AddDiaryWindow(IStrategy):
             
         self.show_diary(diary)
         self.edit_window.destroy()
-        self.view_diary()
+        # self.view_diary()
 
     def close_window(self):
         self.diary_window.destroy()
