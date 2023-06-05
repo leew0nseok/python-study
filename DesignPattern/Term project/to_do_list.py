@@ -5,12 +5,70 @@ from tkinter import messagebox
 from tkinter.ttk import Combobox
 from collections import defaultdict
 
+from PIL import ImageTk
+from PIL import Image
+import os
+
 import datetime
 from abc import ABC, abstractmethod
 
+
+class App(Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("나의 일상을 담아보세요")
+        self.geometry("1000x400+100+100")
+        self.resizable(0, 0)
+        self._font = (None, 13)
+        self._bg = "#ffffff"
+        self._green = "#349E71"
+        self._green2 = "#CDEFE0"
+        style = ttk.Style()
+        # 스타일 설정
+        style.theme_use("clam")
+        style.map("TCombobox", fieldbackground=[("readonly", "#ffffff")])
+        style.map("TCombobox", selectbackground=[("readonly", "#ffffff")])
+        style.map("TCombobox", selectforeground=[("readonly", "#000000")])
+        style.map("TCombobox", background=[("readonly", "#ffffff")])
+        style.configure("TNotebook", background=self._green)
+        style.configure("TNotebook.Tab", font=(None, 10))
+        style.map("TNotebook.Tab", background=[("selected", "#FEDF51")])
+
+        ico_path = os.path.join(os.getcwd(), r"/Users/leewonseok/Desktop/coding/python_study/DesignPattern/Term project/img/icon.ico")  
+        self.iconbitmap(ico_path)
+        self._frame = None
+
+        self.config(bg="#ffffff")
+        Label(self, bg=self._bg, height=4).pack(fill="x")  # 상단 여백을 위해 추가
+        # 로고 설정
+        image = Image.open(r"/Users/leewonseok/Desktop/coding/python_study/DesignPattern/Term project/img/logo.jpg")
+        photo_logo = ImageTk.PhotoImage(image)
+
+        label_logo = Label(self, image=photo_logo, bg=self._bg)
+        label_logo.image = photo_logo
+        label_logo.pack()
+        # 시작 버튼
+        image = Image.open(r"/Users/leewonseok/Desktop/coding/python_study/DesignPattern/Term project/img/button-start.png")
+        photo_button = ImageTk.PhotoImage(image)
+        # self.cw = CalendarWindow()
+        button = Button(
+            self,
+            image=photo_button,
+            relief="flat",
+            bg=self._bg,
+            command=self.open_calendar_window
+            # command=lambda: master.refresh_frame(cw),
+        )
+        button.image = photo_button
+        button.pack(ipadx=3, ipady=2)
+
+    def open_calendar_window(self):
+        cw = CalendarWindow()  # CalendarWindow 인스턴스 생성
+        cw.run()
+
 class CalendarWindow:
     def __init__(self):
-        self.root = Tk()
+        self.root = Toplevel() 
         self.root.title("Calendar and ToDo")
         self.root.geometry("1000x400+100+100")
 
@@ -214,12 +272,16 @@ class ToDoWindow(Frame):
             # 빠른 날짜대로 정렬해서 보여주기
             sorted_dates = sorted(self.tasks.keys(), key=lambda date: datetime.datetime.strptime(date, "%m/%d/%y"))
             for date in sorted_dates:
-                self.task_listbox.insert(END, f"Date: {date}")
+                date_parts = date.split("/")  # "/"를 기준으로 문자열을 분할하여 리스트로 반환
+                month = int(date_parts[0])  # 월 값 추출
+                day = int(date_parts[1])  # 일 값 추출
+                year = int(date_parts[2])  # 연도 값 추출
+                self.task_listbox.insert(END, f"Date: {year}년 {month}월 {day}일")
                 for task in self.tasks[date]:
                     self.task_listbox.insert(END, f"- {task}")
                 self.task_listbox.insert(END, "")  # 줄 간격을 위한 빈 줄 추가
         else:
-            self.task_listbox.insert(END, "No tasks")
+            self.task_listbox.insert(END, "아직 등록된 일이 없습니다. 하루를 계획해 보세요.")
     
 # 전력패턴 인터페이스
 class IStrategy(ABC):
@@ -261,7 +323,11 @@ class AddTaskWindow(IStrategy):
 
     def update_date(self):
         selected_date = self.calendar_window.cal.get_date()
-        self.date_text.config(text=f"Selected Date: {selected_date}")
+        date_parts = selected_date.split("/")  # "/"를 기준으로 문자열을 분할하여 리스트로 반환
+        month = int(date_parts[0])  # 월 값 추출
+        day = int(date_parts[1])  # 일 값 추출
+        year = int(date_parts[2])  # 연도 값 추출
+        self.date_text.config(text=f"Selected Date: {year}년 {month}월 {day}일")
 
     def enable_buttons(self, event):
         selected_index = self.task_listbox.curselection()
@@ -329,13 +395,13 @@ class AddDiaryWindow(IStrategy):
         self.diary_type_combobox = Combobox(self.diary_window, values=["General Diary", "Workout Diary", "Book Diary"])
         self.diary_type_combobox.pack()
 
-        self.title_label = Label(self.diary_window, text="Title:")
+        self.title_label = Label(self.diary_window, text="제목:")
         self.title_label.pack()
 
         self.title_entry = Entry(self.diary_window)
         self.title_entry.pack()
 
-        self.content_label = Label(self.diary_window, text="Content:")
+        self.content_label = Label(self.diary_window, text="내용:")
         self.content_label.pack()
 
         self.content_entry = Text(self.diary_window, width = 25, height=5, relief="solid") 
@@ -346,20 +412,27 @@ class AddDiaryWindow(IStrategy):
         self.diary_type_combobox.bind("<<ComboboxSelected>>", self.handle_diary_type_selection)
 
         # Workout Diary에 필요한 추가 입력 필드
-        self.body_part_label = Label(self.diary_window, text="Body Part:")
+        self.sport_kind_label = Label(self.diary_window, text="운동 종류:")
+        self.sport_kind_entry = Entry(self.diary_window)
+        self.body_part_label = Label(self.diary_window, text="운동 부위:")
         self.body_part_entry = Entry(self.diary_window)
-        self.time_label = Label(self.diary_window, text="Time:")
+        self.time_label = Label(self.diary_window, text="시간:")
         self.time_entry = Entry(self.diary_window)
+        self.sport_content_label = Label(self.diary_window, text="운동 내용:")
+        self.sport_content_entry = Text(self.diary_window, width = 25, height=5, relief="solid") 
+        
 
         # Book Diary에 필요한 추가 입력 필드
-        self.book_title_label = Label(self.diary_window, text="Book Title:")
+        self.book_title_label = Label(self.diary_window, text="책 제목:")
         self.book_title_entry = Entry(self.diary_window)
-        self.author_label = Label(self.diary_window, text="Author:")
+        self.author_label = Label(self.diary_window, text="작가:")
         self.author_entry = Entry(self.diary_window)
-        self.start_page_label = Label(self.diary_window, text="Start Page:")
+        self.start_page_label = Label(self.diary_window, text="시작 페이지:")
         self.start_page_entry = Entry(self.diary_window)
-        self.end_page_label = Label(self.diary_window, text="End Page:")
+        self.end_page_label = Label(self.diary_window, text="마지막 페이지:")
         self.end_page_entry = Entry(self.diary_window)
+        self.book_content_label = Label(self.diary_window, text="독후감:")
+        self.book_content_entry = Text(self.diary_window, width = 25, height=5, relief="solid") 
 
         self.close_button = Button(self.diary_window, text="Close", command=self.close_window)
         self.close_button.pack(side="bottom")
@@ -370,10 +443,20 @@ class AddDiaryWindow(IStrategy):
         selected_type = self.diary_type_combobox.get()
         if selected_type == "Workout Diary":
             # Workout Diary 선택 시 추가 입력 필드 표시
+            self.sport_kind_label.pack()
+            self.sport_kind_entry.pack()
             self.body_part_label.pack()
             self.body_part_entry.pack()
             self.time_label.pack()
             self.time_entry.pack()
+            self.sport_content_label.pack()
+            self.sport_content_entry.pack()
+            # 일상 일기 콘텐츠 숨기기
+            self.title_label.pack_forget()
+            self.title_entry.pack_forget()
+            self.content_label.pack_forget()
+            self.content_entry.pack_forget()
+
             self.book_title_label.pack_forget()
             self.book_title_entry.pack_forget()
             self.author_label.pack_forget()
@@ -382,7 +465,15 @@ class AddDiaryWindow(IStrategy):
             self.start_page_entry.pack_forget()
             self.end_page_label.pack_forget()
             self.end_page_entry.pack_forget()
+            self.book_content_label.pack_forget()
+            self.book_content_entry.pack_forget()
         elif selected_type == "Book Diary":
+            # 일상 일기 콘텐츠 숨기기
+            self.title_label.pack_forget()
+            self.title_entry.pack_forget()
+            self.content_label.pack_forget()
+            self.content_entry.pack_forget()
+
             # Book Diary 선택 시 추가 입력 필드 표시
             self.book_title_label.pack()
             self.book_title_entry.pack()
@@ -392,11 +483,17 @@ class AddDiaryWindow(IStrategy):
             self.start_page_entry.pack()
             self.end_page_label.pack()
             self.end_page_entry.pack()
+            self.book_content_label.pack()
+            self.book_content_entry.pack()
             self.body_part_label.pack_forget()
             self.body_part_entry.pack_forget()
             self.time_label.pack_forget()
             self.time_entry.pack_forget()
         else:
+            self.title_label.pack()
+            self.title_entry.pack()
+            self.content_label.pack()
+            self.content_entry.pack()
             # 다른 Diary 선택 시 추가 입력 필드 숨김
             self.body_part_label.pack_forget()
             self.body_part_entry.pack_forget()
@@ -410,6 +507,8 @@ class AddDiaryWindow(IStrategy):
             self.start_page_entry.pack_forget()
             self.end_page_label.pack_forget()
             self.end_page_entry.pack_forget()
+            self.book_content_label.pack_forget()
+            self.book_content_entry.pack_forget()
     
         self.update_date()
 
@@ -423,34 +522,38 @@ class AddDiaryWindow(IStrategy):
         self.date_label = Label(self.view_window, text="Date:")
         self.date_label.pack()
 
-        self.date_text = Label(self.view_window, text=diary.date)
+        date_parts = diary.date.split("/")  # "/"를 기준으로 문자열을 분할하여 리스트로 반환
+        month = int(date_parts[0])  # 월 값 추출
+        day = int(date_parts[1])  # 일 값 추출
+        year = int(date_parts[2])  # 연도 값 추출
+
+        self.date_text = Label(self.view_window, text=f"{year}년 {month}월 {day}일")
+
         self.date_text.pack()
 
-        self.title_label = Label(self.view_window, text="Title:")
-        self.title_label.pack()
-
-        self.title_text = Label(self.view_window, text=diary.title)
-        self.title_text.pack()
-
-        self.content_label = Label(self.view_window, text="Content:")
-        self.content_label.pack()
-
-        self.content_text = Text(self.view_window, height=10, width=40)
-        self.content_text.insert("1.0", diary.content)
-        self.content_text.configure(state="disabled")
-        self.content_text.pack()
-
-        self.additional_info_label = Label(self.view_window, text="Additional Info:")
-        self.additional_info_label.pack()
-
         if isinstance(diary, WorkOutDiary):
-            self.additional_info_text = Label(self.view_window, text=f"Body Part: {diary.body_part}, Time: {diary.time}")
+            self.additional_info_text = Label(self.view_window, text=f"운동 종류: {diary.sport_kind}\n Body Part: {diary.body_part}\n Time: {diary.time}\n 운동 내용: {diary.sport_content}")
+            self.title_label.pack_forget()
+            self.content_label.pack_forget()
         elif isinstance(diary, BookDiary):
             self.additional_info_text = Label(
                 self.view_window,
-                text=f"Book Title: {diary.book_title}, Author: {diary.author}, Start Page: {diary.start_page}, End Page: {diary.end_page}",
+                text=f"책 제목: {diary.book_title}\n 작가: {diary.author}\n 시작 페이지: {diary.start_page}\n 마지막 페이지: {diary.end_page}\n 독후감: {diary.book_content}",
             )
         else:
+            self.title_label = Label(self.view_window, text="제목:")
+            self.title_label.pack()
+
+            self.title_text = Label(self.view_window, text=diary.title)
+            self.title_text.pack()
+
+            self.content_label = Label(self.view_window, text="내용:")
+            self.content_label.pack()
+            self.content_text = Text(self.view_window, height=10, width=40)
+            self.content_text.insert("1.0", diary.content)
+            self.content_text.configure(state="disabled")
+            self.content_text.pack()
+
             self.additional_info_text = Label(self.view_window, text="No additional info")
 
         self.additional_info_text.pack()
@@ -471,60 +574,83 @@ class AddDiaryWindow(IStrategy):
         self.title_label = Label(self.edit_window, text="Title:")
         self.title_label.pack()
 
-        self.title_entry = Entry(self.edit_window)
-        self.title_entry.insert(0, diary.title)
-        self.title_entry.pack()
-
-        self.content_label = Label(self.edit_window, text="Content:")
-        self.content_label.pack()
-
-        self.content_text = Text(self.edit_window, height=10, width=40)
-        self.content_text.insert("1.0", diary.content)
-        self.content_text.pack()
-
         if isinstance(diary, WorkOutDiary):
-            self.body_part_label = Label(self.edit_window, text="Body Part:")
+
+            self.sport_kind_label = Label(self.edit_window, text="운동 종류:")
+            self.sport_kind_label.pack()
+
+            self.sport_kind_entry = Entry(self.edit_window)
+            self.sport_kind_entry.insert(0, diary.sport_kind)
+            self.sport_kind_entry.pack()
+
+            self.body_part_label = Label(self.edit_window, text="운동 부위:")
             self.body_part_label.pack()
 
             self.body_part_entry = Entry(self.edit_window)
             self.body_part_entry.insert(0, diary.body_part)
             self.body_part_entry.pack()
 
-            self.time_label = Label(self.edit_window, text="Time:")
+            self.time_label = Label(self.edit_window, text="시간:")
             self.time_label.pack()
 
             self.time_entry = Entry(self.edit_window)
             self.time_entry.insert(0, diary.time)
             self.time_entry.pack()
 
+            self.sport_content_label = Label(self.edit_window, text="운동 내용:")
+            self.sport_content_label.pack()
+            self.sport_content_entry = Text(self.edit_window, width = 25, height=5, relief="solid") 
+            self.sport_content_entry.insert("1.0", diary.sport_content)
+            self.sport_content_entry.pack()
+            
+
         elif isinstance(diary, BookDiary):
-            self.book_title_label = Label(self.edit_window, text="Book Title:")
+            self.book_title_label = Label(self.edit_window, text="책 제목:")
             self.book_title_label.pack()
 
             self.book_title_entry = Entry(self.edit_window)
             self.book_title_entry.insert(0, diary.book_title)
             self.book_title_entry.pack()
 
-            self.author_label = Label(self.edit_window, text="Author:")
+            self.author_label = Label(self.edit_window, text="작가:")
             self.author_label.pack()
 
             self.author_entry = Entry(self.edit_window)
             self.author_entry.insert(0, diary.author)
             self.author_entry.pack()
 
-            self.start_page_label = Label(self.edit_window, text="Start Page:")
+            self.start_page_label = Label(self.edit_window, text="시작 페이지:")
             self.start_page_label.pack()
 
             self.start_page_entry = Entry(self.edit_window)
             self.start_page_entry.insert(0, diary.start_page)
             self.start_page_entry.pack()
 
-            self.end_page_label = Label(self.edit_window, text="End Page:")
+            self.end_page_label = Label(self.edit_window, text="마지막 페이지:")
             self.end_page_label.pack()
 
             self.end_page_entry = Entry(self.edit_window)
             self.end_page_entry.insert(0, diary.end_page)
             self.end_page_entry.pack()
+
+            self.book_content_label = Label(self.edit_window, text="독후감:")
+            self.book_content_label.pack()
+
+            self.book_content_entry = Text(self.edit_window, width = 25, height=5, relief="solid") 
+            self.book_content_entry.insert("1.0", diary.book_content)
+            self.book_content_entry.pack()
+        
+        else:
+            self.title_entry = Entry(self.edit_window)
+            self.title_entry.insert(0, diary.title)
+            self.title_entry.pack()
+
+            self.content_label = Label(self.edit_window, text="Content:")
+            self.content_label.pack()
+
+            self.content_text = Text(self.edit_window, height=10, width=40)
+            self.content_text.insert("1.0", diary.content)
+            self.content_text.pack()
 
         self.save_button = Button(self.edit_window, text="Save", command=lambda: self.save_edited_diary(diary))
         self.save_button.pack()
@@ -547,11 +673,13 @@ class AddDiaryWindow(IStrategy):
                 self.show_diary(diary)
         elif diary_type == "Workout Diary":
             # Workout Diary 작성 코드
+            sport_kind = self.sport_kind_entry.get().strip()
             body_part = self.body_part_entry.get().strip()
             time = self.time_entry.get().strip()
-            if title and content and body_part and time:
-                diary_builder = WorkOutDiaryBuilder().set_date(self.selected_date).set_title(title).set_content(content)
-                diary_builder.set_body_part(body_part).set_time(time)
+            sport_content = self.sport_content_entry.get("1.0", "end-1c").strip()
+            if body_part and time and sport_kind and sport_content:
+                diary_builder = WorkOutDiaryBuilder().set_date(self.selected_date)
+                diary_builder.set_sport_kind(sport_kind).set_body_part(body_part).set_time(time).set_sport_content(sport_content)
                 diary = diary_builder.build()
                 self.calendar_window.save_diary(diary)  # 일기 저장
                 self.show_diary(diary)
@@ -563,8 +691,9 @@ class AddDiaryWindow(IStrategy):
             author = self.author_entry.get().strip()
             start_page = self.start_page_entry.get().strip()
             end_page = self.end_page_entry.get().strip()
+            book_content = self.book_content_entry.get("1.0", "end-1c").strip()
 
-            if title and content and book_title and author and start_page and end_page:
+            if book_title and author and start_page and end_page and book_content:
                 diary_builder = (
                     BookBuilder()
                     .set_date(self.selected_date)
@@ -574,6 +703,7 @@ class AddDiaryWindow(IStrategy):
                     .set_author(author)
                     .set_start_page(start_page)
                     .set_end_page(end_page)
+                    .set_book_content(book_content)
                 )
                 diary = diary_builder.build()
                 self.calendar_window.save_diary(diary)  # 일기 저장
@@ -586,18 +716,23 @@ class AddDiaryWindow(IStrategy):
     # 편집한 일기를 저장하는 함수
     def save_edited_diary(self, diary):
         # diary.date = self.date_entry.get()
-        diary.title = self.title_entry.get()
-        diary.content = self.content_text.get("1.0", "end")
 
         if isinstance(diary, WorkOutDiary):
+            diary.sport_kind = self.sport_kind_entry.get()
             diary.body_part = self.body_part_entry.get()
             diary.time = self.time_entry.get()
+            diary.sport_content = self.sport_content_entry.get("1.0", "end")
 
         elif isinstance(diary, BookDiary):
             diary.book_title = self.book_title_entry.get()
             diary.author = self.author_entry.get()
             diary.start_page = self.start_page_entry.get()
             diary.end_page = self.end_page_entry.get()
+            diary.book_content = self.book_content_entry.get("1.0", "end")
+
+        else:
+            diary.title = self.title_entry.get()
+            diary.content = self.content_text.get("1.0", "end")
             
         self.show_diary(diary)
         self.edit_window.destroy()
@@ -614,7 +749,11 @@ class AddDiaryWindow(IStrategy):
 
     def update_date(self):
         selected_date = self.calendar_window.cal.get_date()
-        self.date_text.config(text=f"Selected Date: {selected_date}")
+        date_parts = selected_date.split("/")  # "/"를 기준으로 문자열을 분할하여 리스트로 반환
+        month = int(date_parts[0])  # 월 값 추출
+        day = int(date_parts[1])  # 일 값 추출
+        year = int(date_parts[2])  # 연도 값 추출
+        self.date_text.config(text=f"Selected Date: {year}년 {month}월 {day}일")
 
     def open(self):
         self.diary_window.mainloop()
@@ -630,34 +769,18 @@ class Diary:
 
     def set_content(self, content):
         self.content = content
-    
-    def show(self):
-        self.view_window = Toplevel(self.diary_window)
-        self.view_window.title("View Diary")
-        self.view_window.geometry("300x400+1100+100")
 
-        self.additional_info_label = Label(self.view_window, text="Additional Info:")
-        self.additional_info_label.pack()
-
-        self.additional_info_text = Label(self.view_window, text=self.get_additional_info())
-        self.additional_info_text.pack()
-
-    
     def get_additional_info(self):
         return ""
 
 class WorkOutDiary(Diary):
     def __init__(self, date, title, content):
         super().__init__(date, title, content)
+        self.sport_kind = ""
+        self.sport_content = ""
         self.body_part = ""
         self.time = 0
     
-    def show(self):
-        super().show()
-
-        self.additional_info_label.configure(text="Body Part:")
-        self.additional_info_text.configure(text=self.body_part)
-
 class BookDiary(Diary):
     def __init__(self, date, title, content):
         super().__init__(date, title, content)
@@ -665,15 +788,8 @@ class BookDiary(Diary):
         self.author = ""
         self.start_page = 0
         self.end_page = 0
+        self.book_content = ""
     
-    def show(self):
-        super().show()
-
-        self.additional_info_label.configure(text="Book Info:")
-        additional_info = f"Title: {self.book_title}\nAuthor: {self.author}\n"
-        additional_info += f"Start Page: {self.start_page}\nEnd Page: {self.end_page}"
-        self.additional_info_text.configure(text=additional_info)
-
 class DiaryBuilder:
     def __init__(self):
         self.date = None
@@ -698,8 +814,14 @@ class DiaryBuilder:
 class WorkOutDiaryBuilder(DiaryBuilder):
     def __init__(self):
         super().__init__()
+        self.sport_kind = ""
         self.body_part = "" # 운동 부위
         self.time = 0 # 운동 시간
+        self.sport_content = ""
+    
+    def set_sport_kind(self, sport_kind):
+        self.sport_kind = sport_kind
+        return self
 
     def set_body_part(self, body_part):
         self.body_part = body_part
@@ -708,11 +830,17 @@ class WorkOutDiaryBuilder(DiaryBuilder):
     def set_time(self, time):
         self.time = time
         return self
+    
+    def set_sport_content(self, sport_content):
+        self.sport_content = sport_content
+        return self
 
     def build(self):
         diary = WorkOutDiary(self.date, self.title, self.content)
+        diary.sport_kind = self.sport_kind
         diary.body_part = self.body_part
         diary.time = self.time
+        diary.sport_content = self.sport_content
         return diary
 
 class BookBuilder(DiaryBuilder):
@@ -722,6 +850,7 @@ class BookBuilder(DiaryBuilder):
         self.author = ""
         self.start_page = 0
         self.end_page = 0
+        self.book_content = ""
 
     def set_book_title(self, book_title):
         self.book_title = book_title
@@ -738,6 +867,10 @@ class BookBuilder(DiaryBuilder):
     def set_end_page(self, end_page):
         self.end_page = end_page
         return self
+    
+    def set_book_content(self, book_content):
+        self.book_content = book_content
+        return self
 
     def build(self):
         diary = BookDiary(self.date, self.title, self.content)
@@ -745,6 +878,7 @@ class BookBuilder(DiaryBuilder):
         diary.author = self.author
         diary.start_page = self.start_page
         diary.end_page = self.end_page
+        diary.book_content = self.book_content
         return diary
 
 
@@ -821,5 +955,5 @@ class CompleteTaskCommand(Command):
 
 
 if __name__ == "__main__":
-    calendar_window = CalendarWindow()
-    calendar_window.run()
+    app = App()
+    app.mainloop()
