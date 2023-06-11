@@ -457,6 +457,7 @@ class AddDiaryWindow(IStrategy):
             self.content_label.pack_forget()
             self.content_entry.pack_forget()
 
+            # 독서 일기 콘텐츠 숨기기
             self.book_title_label.pack_forget()
             self.book_title_entry.pack_forget()
             self.author_label.pack_forget()
@@ -473,6 +474,11 @@ class AddDiaryWindow(IStrategy):
             self.title_entry.pack_forget()
             self.content_label.pack_forget()
             self.content_entry.pack_forget()
+            # 운동 일기 콘텐츠 숨기기
+            self.body_part_label.pack_forget()
+            self.body_part_entry.pack_forget()
+            self.time_label.pack_forget()
+            self.time_entry.pack_forget()
 
             # Book Diary 선택 시 추가 입력 필드 표시
             self.book_title_label.pack()
