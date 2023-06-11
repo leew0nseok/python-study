@@ -373,7 +373,7 @@ class AddTaskWindow(IStrategy):
         self.add_task_window.mainloop()
 
 
-# Concrete strategy1
+# Concrete strategy2
 class AddDiaryWindow(IStrategy):
     def __init__(self, calendar_window, selected_date):
         self.diary_window = Tk()
@@ -468,6 +468,7 @@ class AddDiaryWindow(IStrategy):
             self.end_page_entry.pack_forget()
             self.book_content_label.pack_forget()
             self.book_content_entry.pack_forget()
+
         elif selected_type == "Book Diary":
             # 일상 일기 콘텐츠 숨기기
             self.title_label.pack_forget()
@@ -479,6 +480,11 @@ class AddDiaryWindow(IStrategy):
             self.body_part_entry.pack_forget()
             self.time_label.pack_forget()
             self.time_entry.pack_forget()
+            self.sport_kind_label.pack_forget()
+            self.sport_kind_entry.pack_forget()
+            self.sport_content_label.pack_forget()
+            self.sport_content_entry.pack_forget()
+            
 
             # Book Diary 선택 시 추가 입력 필드 표시
             self.book_title_label.pack()
@@ -505,6 +511,9 @@ class AddDiaryWindow(IStrategy):
             self.body_part_entry.pack_forget()
             self.time_label.pack_forget()
             self.time_entry.pack_forget()
+            self.sport_kind_label.pack_forget()
+            self.sport_kind_entry.pack_forget()
+            self.sport_content_label.pack_forget()
             self.book_title_label.pack_forget()
             self.book_title_entry.pack_forget()
             self.author_label.pack_forget()
