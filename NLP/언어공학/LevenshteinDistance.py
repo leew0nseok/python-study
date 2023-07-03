@@ -1,5 +1,5 @@
-str1 = "intention"
-str2 = "execution"
+# str1 = "intention"
+# str2 = "execution"
 str1 = input()
 str2 = input()
 cost = 2
