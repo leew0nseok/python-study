@@ -4,7 +4,8 @@ str1 = input()
 str2 = input()
 cost = 2
 
-
+str1 = str1.split()
+str2 = str2.split()
 n = len(str1)+1
 m = len(str2)+1
 
